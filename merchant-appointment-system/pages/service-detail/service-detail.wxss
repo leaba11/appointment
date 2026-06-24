@@ -1,0 +1,255 @@
+/* ========================================== */
+/* 服务详情页面样式 */
+/* ========================================== */
+
+/* 1. 页面整体容器 */
+/* 负责页面整体布局，包括背景色、内边距等 */
+.service-detail-container {
+  min-height: 100vh;        /* 最小高度占满视口 */
+  background-color: #f5f5f5; /* 浅灰色背景 */
+  padding-top: 52px;        /* 顶部预留空间给固定头部 */
+  padding-bottom: 24px;     /* 底部安全边距 */
+}
+
+/* 2. 头部导航栏 */
+/* 负责页面顶部固定导航，包含返回按钮和标题 */
+.header {
+  display: flex;            /* 弹性布局 */
+  align-items: center;      /* 垂直居中 */
+  height: 48px;            /* 固定高度 */
+  background-color: #fff;   /* 白色背景 */
+  border-bottom: 1px solid #e8e8e8; /* 底部分隔线 */
+  padding: 0 16px;         /* 左右内边距 */
+  position: fixed;          /* 固定定位 */
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;            /* 层级最高，防止被遮挡 */
+}
+
+/* 返回按钮容器 */
+.back-btn {
+  margin-right: 12px;       /* 右侧间距 */
+}
+
+/* 返回箭头图标 */
+.back-icon {
+  font-size: 18px;          /* 图标大小 */
+  color: #fff;              /* 白色图标 */
+}
+
+/* 页面标题 */
+.header-title {
+  font-size: 15px;          /* 标题字号 */
+  font-weight: 600;         /* 加粗 */
+  color: #fff;              /* 白色文字 */
+  flex: 1;                  /* 占满剩余空间 */
+  text-align: center;       /* 居中显示 */
+}
+
+/* 3. 通用区域标题 */
+/* 用于各模块的标题（如"服务信息"、"选择理发师"等） */
+.section-title {
+  font-size: 14px;          /* 标题字号 */
+  font-weight: 600;         /* 加粗 */
+  color: #333;              /* 深灰色文字 */
+}
+
+/* 4. 信息项样式 */
+/* 用于展示服务信息的每一行（如服务项目、价格、时长等） */
+.info-item {
+  display: flex;            /* 弹性布局 */
+  justify-content: space-between; /* 两端对齐 */
+  align-items: center;      /* 垂直居中 */
+  padding: 8px 0;          /* 上下内边距 */
+  border-bottom: 1px solid #f5f5f5; /* 底部分隔线 */
+}
+
+/* 最后一个信息项去掉底部边框 */
+.info-item:last-child {
+  border-bottom: none;
+}
+
+/* 信息标签（左侧） */
+.info-label {
+  font-size: 13px;          /* 字号 */
+  color: #888;              /* 浅灰色 */
+}
+
+/* 信息值（右侧） */
+.info-value {
+  font-size: 13px;          /* 字号 */
+  color: #333;              /* 深灰色 */
+}
+
+/* 价格专用样式 */
+.info-value.price {
+  color: #dc2626;           /* 红色突出显示价格 */
+  font-weight: 600;         /* 加粗 */
+  font-size: 16px;          /* 稍大字号 */
+}
+
+/* 5. 卡片容器 */
+/* 用于包裹服务信息模块，带圆角和阴影 */
+.card {
+  background-color: #fff;   /* 白色背景 */
+  border-radius: 10px;      /* 圆角 */
+  padding: 14px 16px;      /* 内边距 */
+  margin: 12px;            /* 外边距 */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04); /* 轻微阴影 */
+}
+
+/* 卡片内的标题样式 */
+.card .section-title {
+  margin-bottom: 10px;      /* 底部间距 */
+  padding-bottom: 8px;      /* 底部内边距 */
+  border-bottom: 1px solid #f5f5f5; /* 底部分隔线 */
+}
+
+/* 6. 区域容器 */
+/* 用于包裹日期选择、时间选择等模块 */
+.section {
+  background-color: #fff;   /* 白色背景 */
+  margin: 12px;            /* 外边距 */
+  padding: 14px 16px;      /* 内边距 */
+  border-radius: 10px;      /* 圆角 */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04); /* 轻微阴影 */
+}
+
+/* 区域内的标题样式 */
+.section .section-title {
+  margin-bottom: 12px;      /* 底部间距 */
+}
+
+/* 7. 理发师选择区域 */
+/* 横向滚动的理发师列表 */
+
+/* 滚动容器 */
+.staff-scroll {
+  white-space: nowrap;      /* 不换行，支持横向滚动 */
+  margin: 0;                /* 清除默认间距 */
+}
+
+/* 理发师卡片容器 */
+.staff-container {
+  display: inline-flex;     /* 行内弹性布局 */
+  gap: 12px;               /* 卡片间距 */
+  padding: 4px 0;          /* 上下内边距 */
+}
+
+/* 单个理发师卡片 */
+.staff-item {
+  display: flex;            /* 弹性布局 */
+  flex-direction: column;   /* 垂直排列 */
+  align-items: center;      /* 水平居中 */
+  padding: 10px;           /* 内边距 */
+  border: 1px solid #e5e7eb; /* 灰色边框 */
+  border-radius: 10px;      /* 圆角 */
+  width: 96px;             /* 固定宽度 */
+  transition: all 0.2s ease; /* 过渡动画 */
+  cursor: pointer;          /* 鼠标指针 */
+  background-color: #ffffff; /* 白色背景 */
+}
+
+/* 选中状态的理发师卡片 */
+.staff-item.active {
+  border-color: #8f8db3ff;             /* 紫色边框 */
+  background-color: rgba(79, 70, 229, 0.04); /* 紫色背景色 */
+}
+
+/* 理发师头像 */
+.staff-avatar {
+  width: 48px;              /* 头像大小 */
+  height: 48px;
+  border-radius: 50%;       /* 圆形头像 */
+  background: linear-gradient(135deg, #4a9164ff 0%, #49966dff 100%); /* 渐变背景 */
+  color: white;             /* 白色文字 */
+  display: flex;            /* 弹性布局 */
+  align-items: center;      /* 垂直居中 */
+  justify-content: center;  /* 水平居中 */
+  font-size: 18px;          /* 字号 */
+  font-weight: 600;         /* 加粗 */
+  margin-bottom: 8px;       /* 底部间距 */
+}
+
+/* 理发师信息容器 */
+.staff-info {
+  text-align: center;       /* 居中对齐 */
+}
+
+/* 理发师姓名 */
+.staff-name {
+  font-size: 13px;          /* 字号 */
+  font-weight: 500;         /* 中等粗细 */
+  color: #111827;           /* 深色文字 */
+  margin-bottom: 2px;       /* 底部间距 */
+  white-space: nowrap;      /* 不换行 */
+  overflow: hidden;         /* 超出隐藏 */
+  text-overflow: ellipsis;  /* 省略号显示 */
+  max-width: 80px;          /* 最大宽度 */
+}
+
+/* 理发师专长 */
+.staff-specialty {
+  font-size: 11px;          /* 小号字体 */
+  color: #999;              /* 灰色文字 */
+  margin-bottom: 3px;       /* 底部间距 */
+  white-space: nowrap;      /* 不换行 */
+  overflow: hidden;         /* 超出隐藏 */
+  text-overflow: ellipsis;  /* 省略号显示 */
+  max-width: 80px;          /* 最大宽度 */
+}
+
+/* 理发师评分 */
+.staff-rating {
+  font-size: 11px;          /* 小号字体 */
+  color: #f59e0b;           /* 橙色星星 */
+  font-weight: 500;         /* 中等粗细 */
+}
+
+/* 8. 输入框样式 */
+/* 用于日期选择和时间选择的模拟输入框 */
+.input {
+  padding: 10px 12px;      /* 内边距 */
+  border: 1px solid #e5e7eb; /* 灰色边框 */
+  border-radius: 8px;       /* 圆角 */
+  font-size: 13px;          /* 字号 */
+  color: #333;              /* 深色文字 */
+  background-color: #fafafa; /* 浅灰色背景 */
+}
+
+/* 9. 按钮样式 */
+/* 通用按钮基础样式 */
+.btn {
+  margin: 12px;            /* 外边距 */
+  padding: 14px;           /* 内边距 */
+  border-radius: 10px;      /* 圆角 */
+  font-size: 15px;          /* 字号 */
+  font-weight: 600;         /* 加粗 */
+  border: none;             /* 无边框 */
+  cursor: pointer;          /* 鼠标指针 */
+}
+
+/* 主要按钮（立即预约） */
+.btn-primary {
+  background: linear-gradient(135deg, #478d5eff 0%, #45818cff 100%); /* 渐变背景 */
+  color: #fff;              /* 白色文字 */
+  box-shadow: 0 2px 8px rgba(92, 169, 133, 0.3); /* 阴影效果 */
+}
+
+/* 按钮点击状态 */
+.btn-primary:active {
+  opacity: 0.9;            /* 透明度变化 */
+  transform: scale(0.99);  /* 轻微缩放 */
+}
+
+/* 10. 加载状态 */
+/* 数据加载中的提示 */
+.loading {
+  display: flex;            /* 弹性布局 */
+  align-items: center;      /* 垂直居中 */
+  justify-content: center;  /* 水平居中 */
+  height: 150px;           /* 固定高度 */
+  font-size: 13px;          /* 字号 */
+  color: #999;              /* 灰色文字 */
+}

@@ -1,0 +1,37 @@
+<view class="container">
+  <view class="header">
+    <text class="title">用户设置</text>
+    <text class="back" bindtap="goBack">返回</text>
+  </view>
+
+  <view class="card">
+    <view class="form-group">
+      <text class="label">用户名</text>
+      <input type="text" class="input" value="{{username}}" bindinput="inputUsername" placeholder="请输入用户名" />
+    </view>
+
+    <view class="form-group">
+      <text class="label">电话号码</text>
+      <input type="number" class="input" value="{{phone}}" bindinput="inputPhone" placeholder="请输入电话号码" />
+    </view>
+
+    <view class="form-group">
+      <text class="label">性别</text>
+      <radio-group class="radio-group" bindchange="selectGender">
+        <label class="radio-item" wx:for="{{genders}}" wx:key="value">
+          <radio value="{{item.value}}" checked="{{gender === item.value}}" />
+          <text>{{item.label}}</text>
+        </label>
+      </radio-group>
+    </view>
+
+    <view class="form-group">
+      <text class="label">头像预览</text>
+      <view class="avatar-preview">
+        <image src="{{gender === 'male' ? '../../images/1.png' : gender === 'female' ? '../../images/2.png' : ''}}" mode="aspectFill" />
+      </view>
+    </view>
+  </view>
+
+  <button class="btn btn-primary" bindtap="saveSettings">保存设置</button>
+</view>

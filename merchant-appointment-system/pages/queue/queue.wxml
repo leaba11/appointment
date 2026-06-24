@@ -1,0 +1,98 @@
+<view class="container">
+  <!-- 排队信息 -->
+  <view class="card queue-info">
+    <text class="queue-title">当前叫号</text>
+    <text class="queue-number">{{queue.currentNumber}}</text>
+  </view>
+
+  <!-- 您的号码 -->
+  <view class="card queue-info" wx:if="{{queue.yourNumber && queue.yourNumber !== null && queue.yourNumber !== 'null'}}">
+    <text class="queue-title">您的号码</text>
+    <text class="queue-number">{{queue.yourNumber}}</text>
+    <text wx:if="{{queue.yourStatus}}" class="queue-status">状态：{{queue.yourStatus}}</text>
+    <text class="estimated-time">预计等待时间：{{queue.estimatedWaitTime}} 分钟</text>
+    <button wx:if="{{queue.yourStatus !== '已完成' && queue.yourStatus !== 'completed' && queue.yourStatus !== '已取消' && queue.yourStatus !== 'cancelled' && queue.yourStatus !== '已过号' && queue.yourStatus !== 'skipped'}}" class="btn btn-secondary" bindtap="cancelQueue">
+      取消排队
+    </button>
+    <button wx:else class="btn btn-primary" bindtap="getQueueNumber">重新取号</button>
+  </view>
+
+  <!-- 取号按钮 -->
+  <view wx:if="{{!queue.yourNumber || queue.yourNumber === null || queue.yourNumber === 'null'}}" class="card queue-info">
+    <text class="queue-title">取号排队</text>
+    <text class="queue-description">点击下方按钮取号，获取您的排队号码</text>
+    <button class="btn btn-primary" bindtap="getQueueNumber">取号</button>
+  </view>
+
+  <!-- 排队队列 -->
+  <view class="card">
+    <text class="section-title">排队队列</text>
+    <view class="queue-list">
+      <view class="queue-list-item {{item.isMe ? 'is-me' : ''}}" wx:for="{{queueRecords}}" wx:key="id">
+        <view class="queue-list-left">
+          <text class="queue-list-number">{{item.queue_number}}</text>
+          <view class="queue-list-info">
+            <text class="queue-list-name">{{item.customer_name || '匿名用户'}}</text>
+            <text class="queue-list-service">{{item.service_name || '理发'}}</text>
+          </view>
+        </view>
+        <view class="queue-list-right">
+          <text class="queue-list-status {{item.statusClass}}">{{item.status === 'waiting' ? '等待中' : (item.status === 'called' ? '美发中' : (item.status === 'servicing' ? '服务中' : item.status))}}</text>
+        </view>
+      </view>
+      <view wx:if="{{queueRecords.length === 0}}" class="queue-list-empty">
+        <text>暂无排队记录</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 排队规则 -->
+  <view class="card">
+    <text class="section-title">排队规则</text>
+    <view class="rule-item">
+      <text class="rule-number">1</text>
+      <text class="rule-content">取号后，请保持手机畅通，我们会提前通知您</text>
+    </view>
+    <view class="rule-item">
+      <text class="rule-number">2</text>
+      <text class="rule-content">叫号三次未到，号码作废</text>
+    </view>
+    <view class="rule-item">
+      <text class="rule-number">3</text>
+      <text class="rule-content">如有特殊情况，请及时联系商户</text>
+    </view>
+  </view>
+
+  <!-- 服务选择弹窗 -->
+  <view class="modal" wx:if="{{showServiceModal}}">
+    <view class="modal-mask" bindtap="closeServiceModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">选择服务项目</text>
+      </view>
+      <view class="modal-body">
+        <view class="service-list">
+          <view 
+            class="service-item {{selectedService && selectedService.id === item.id ? 'selected' : ''}}" 
+            wx:for="{{services}}" 
+            wx:key="id"
+            bindtap="selectService" 
+            data-id="{{item.id}}"
+            data-name="{{item.name}}"
+            data-price="{{item.price}}"
+            data-duration="{{item.duration}}">
+            <view class="service-info">
+              <text class="service-name">{{item.name}}</text>
+              <text class="service-duration">{{item.duration}}分钟</text>
+            </view>
+            <text class="service-price">¥{{item.price}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn btn-secondary" bindtap="closeServiceModal">取消</button>
+        <button class="btn btn-primary" bindtap="confirmService" disabled="{{!selectedService}}">确认取号</button>
+      </view>
+    </view>
+  </view>
+</view>

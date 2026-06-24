@@ -1,0 +1,63 @@
+<view class="container">
+  <view class="header">
+    <text class="title">预约详情</text>
+    <text class="back" bindtap="goBack">返回</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">
+    加载中...
+  </view>
+
+  <view wx:else class="content">
+    <!-- 预约信息 -->
+    <view class="card">
+      <text class="section-title">预约信息</text>
+      <view class="info-item">
+        <text class="info-label">服务项目：</text>
+        <text class="info-value">{{appointment.serviceName}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">服务员工：</text>
+        <text class="info-value">{{appointment.staffName}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">预约日期：</text>
+        <text class="info-value">{{formatDate(appointment.date)}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">预约时间：</text>
+        <text class="info-value">{{appointment.time}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">服务价格：</text>
+        <text class="info-value price">¥{{appointment.servicePrice}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">预约状态：</text>
+        <text class="info-value {{getStatusClass(appointment.status)}}">{{getStatusText(appointment.status)}}</text>
+      </view>
+    </view>
+
+    <!-- 个人信息 -->
+    <view class="card">
+      <text class="section-title">个人信息</text>
+      <view class="info-item">
+        <text class="info-label">姓名：</text>
+        <text class="info-value">{{appointment.name}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">电话：</text>
+        <text class="info-value">{{appointment.phone}}</text>
+      </view>
+      <view class="info-item" wx:if="{{appointment.remark}}">
+        <text class="info-label">备注：</text>
+        <text class="info-value">{{appointment.remark}}</text>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-buttons">
+      <button class="btn btn-danger" bindtap="cancelAppointment" wx:if="{{appointment.status === 'pending' || appointment.status === 'confirmed'}}">取消预约</button>
+    </view>
+  </view>
+</view>

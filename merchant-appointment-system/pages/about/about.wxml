@@ -1,0 +1,33 @@
+<view class="container">
+  <view class="header">
+    <text class="title">关于我们</text>
+    <text class="back" bindtap="goBack">返回</text>
+  </view>
+
+  <view class="card">
+    <view class="app-logo"></view>
+    <text class="app-name">商户预约系统</text>
+    <text class="app-version">版本：{{version}}</text>
+  </view>
+
+  <view class="card">
+    <text class="section-title">系统介绍</text>
+    <text class="description">{{description}}</text>
+  </view>
+
+  <view class="card">
+    <text class="section-title">功能特点</text>
+    <view class="feature-list">
+      <view class="feature-item" wx:for="{{features}}" wx:key="index">
+        <text class="feature-icon">•</text>
+        <text class="feature-text">{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="section-title">联系我们</text>
+    <text class="contact-info">客服电话：13800138000</text>
+    <text class="contact-info">邮箱：2198155176@qq.com</text>
+  </view>
+</view>

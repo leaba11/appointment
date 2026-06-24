@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商户管理后台</title>
+  <link rel="stylesheet" href="styles.css">
+  <meta http-equiv="Cache-Control" content="max-age=86400">
+  <meta http-equiv="Expires" content="86400">
+</head>
+<body>
+  <div id="app">
+    <div class="login-container" v-if="!isLoggedIn">
+      <div class="login-form">
+        <h2>商户管理后台登录</h2>
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" v-model="loginForm.username" placeholder="请输入用户名">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" v-model="loginForm.password" placeholder="请输入密码">
+        </div>
+        <button class="btn btn-primary" @click="login">登录</button>
+      </div>
+    </div>
+    
+    <div class="admin-container" v-else>
+      <div class="sidebar">
+        <div class="logo">商户管理后台</div>
+        <ul class="menu">
+          <li :class="{ active: currentMenu === 'dashboard' }" @click="currentMenu = 'dashboard'">
+            <span class="menu-icon">📊</span>
+            <span>数据统计</span>
+          </li>
+          <li :class="{ active: currentMenu === 'services' }" @click="currentMenu = 'services'">
+            <span class="menu-icon">💈</span>
+            <span>服务项目管理</span>
+          </li>
+          <li :class="{ active: currentMenu === 'staff' }" @click="currentMenu = 'staff'">
+            <span class="menu-icon">👨‍💼</span>
+            <span>员工管理</span>
+          </li>
+          <li :class="{ active: currentMenu === 'appointments' }" @click="currentMenu = 'appointments'">
+            <span class="menu-icon">📅</span>
+            <span>预约看板</span>
+          </li>
+          <li :class="{ active: currentMenu === 'queue' }" @click="currentMenu = 'queue'">
+            <span class="menu-icon">🔄</span>
+            <span>排队墙</span>
+          </li>
+          <li :class="{ active: currentMenu === 'customers' }" @click="currentMenu = 'customers'">
+            <span class="menu-icon">👥</span>
+            <span>客户档案</span>
+          </li>
+          <li :class="{ active: currentMenu === 'ratings' }" @click="currentMenu = 'ratings'">
+            <span class="menu-icon">⭐</span>
+            <span>评价管理</span>
+          </li>
+          <li :class="{ active: currentMenu === 'merchant' }" @click="currentMenu = 'merchant'">
+            <span class="menu-icon">🏪</span>
+            <span>商户设置</span>
+          </li>
+          <li @click="logout">
+            <span class="menu-icon">🚪</span>
+            <span>退出登录</span>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="content">
+        <div class="header">
+          <h1>{{ getMenuTitle(currentMenu) }}</h1>
+          <div class="user-info">
+            <span>欢迎，{{ currentUser }}</span>
+          </div>
+        </div>
+        
+        <div class="main-content">
+          <!-- 数据统计 -->
+          <div v-if="currentMenu === 'dashboard'" class="dashboard">
+            <div class="stats-grid">
+              <div class="stat-card" @click="showDetail('appointments')">
+                <div class="stat-number">{{ stats.totalAppointments }}</div>
+                <div class="stat-label">今日预约</div>
+                <div class="stat-icon">📅</div>
+                <div class="stat-more">查看详情 →</div>
+              </div>
+              <div class="stat-card" @click="showDetail('queue')">
+                <div class="stat-number">{{ stats.currentQueue }}</div>
+                <div class="stat-label">当前排队</div>
+                <div class="stat-icon">🔄</div>
+                <div class="stat-more">查看详情 →</div>
+              </div>
+              <div class="stat-card" @click="showDetail('customers')">
+                <div class="stat-number">{{ stats.totalCustomers }}</div>
+                <div class="stat-label">总客户数</div>
+                <div class="stat-icon">👥</div>
+                <div class="stat-more">查看详情 →</div>
+              </div>
+              <div class="stat-card" @click="showDetail('revenue')">
+                <div class="stat-number">¥{{ stats.totalRevenue }}</div>
+                <div class="stat-label">今日营收</div>
+                <div class="stat-icon">💰</div>
+                <div class="stat-more">查看详情 →</div>
+              </div>
+              <div class="stat-card" @click="showDetail('monthlyRevenue')">
+                <div class="stat-number">¥{{ stats.monthlyRevenue || 0 }}</div>
+                <div class="stat-label">月营收</div>
+                <div class="stat-icon">📈</div>
+                <div class="stat-more">查看详情 →</div>
+              </div>
+              <div class="stat-card" @click="showDetail('yearlyRevenue')">
+                <div class="stat-number">¥{{ stats.yearlyRevenue || 0 }}</div>
+                <div class="stat-label">年营收</div>
+                <div class="stat-icon">📊</div>
+                <div class="stat-more">查看详情 →</div>
+              </div>
+            </div>
+            
+            <!-- 图表区域 -->
+            <div class="charts-container">
+              <div class="chart-card">
+                <h3>服务项目分布</h3>
+                <canvas id="serviceChart"></canvas>
+              </div>
+              <div class="chart-card">
+                <h3>预约时段分布</h3>
+                <canvas id="appointmentChart"></canvas>
+              </div>
+            </div>
+            
+            <!-- 详细数据模态框 -->
+            <div class="modal" v-if="showDetailPanel">
+              <div class="modal-content" style="width: 90%; max-width: 1000px;">
+                <div class="modal-header">
+                  <h3>{{ detailTitle }}</h3>
+                  <button class="close-btn" @click="showDetailPanel = false">&times;</button>
+                </div>
+                <div class="modal-body" style="max-height: 600px; overflow-y: auto;">
+                  <!-- 今日预约详情 -->
+                  <table class="data-table" v-if="detailType === 'appointments'">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>服务项目</th>
+                        <th>员工</th>
+                        <th>客户</th>
+                        <th>日期</th>
+                        <th>时间</th>
+                        <th>状态</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="appointment in appointments.filter(a => new Date(a.date).toDateString() === new Date().toDateString())" :key="appointment.id">
+                        <td>{{ appointment.id }}</td>
+                        <td>{{ appointment.serviceName }}</td>
+                        <td>{{ appointment.staffName }}</td>
+                        <td>{{ appointment.name }}</td>
+                        <td>{{ new Date(appointment.date).toLocaleDateString('zh-CN') }}</td>
+                        <td>{{ appointment.time }}</td>
+                        <td>{{ appointment.status }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  
+                  <table class="data-table" v-if="detailType === 'queue'">
+                    <thead>
+                      <tr>
+                        <th>序号</th>
+                        <th>排队号码</th>
+                        <th>客户姓名</th>
+                        <th>排队时间</th>
+                        <th>状态</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(item, index) in queueList" :key="index">
+                        <td>{{ index + 1 }}</td>
+                        <td>{{ item.number }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.time }}</td>
+                        <td>{{ item.status }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  
+                  <table class="data-table" v-if="detailType === 'customers'">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>姓名</th>
+                        <th>手机号</th>
+                        <th>总订单数</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="customer in customers" :key="customer.id">
+                        <td>{{ customer.id }}</td>
+                        <td>{{ customer.name }}</td>
+                        <td>{{ customer.phone }}</td>
+                        <td>{{ customer.orderCount }}</td>
+                        <td>
+                          <button class="btn btn-secondary" @click="viewCustomerDetail(customer)">查看详情</button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  
+                  <!-- 今日营收详情 -->
+                  <table class="data-table" v-if="detailType === 'revenue'">
+                    <thead>
+                      <tr>
+                        <th>客户</th>
+                        <th>服务项目</th>
+                        <th>日期</th>
+                        <th>时间</th>
+                        <th>金额</th>
+                        <th>状态</th>
+                        <th>来源</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="record in revenueRecords" :key="record.id">
+                        <td>{{ record.customerName }}</td>
+                        <td>{{ record.serviceName }}</td>
+                        <td>{{ new Date(record.date).toLocaleDateString('zh-CN') }}</td>
+                        <td>{{ record.time }}</td>
+                        <td>¥{{ record.amount }}</td>
+                        <td>{{ record.status }}</td>
+                        <td>{{ record.source }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  
+                  <!-- 月营收详情 -->
+                  <table class="data-table" v-if="detailType === 'monthlyRevenue'">
+                    <thead>
+                      <tr>
+                        <th>客户</th>
+                        <th>服务项目</th>
+                        <th>日期</th>
+                        <th>时间</th>
+                        <th>金额</th>
+                        <th>状态</th>
+                        <th>来源</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="record in revenueRecords.filter(r => new Date(r.date).getMonth() === new Date().getMonth() && new Date(r.date).getFullYear() === new Date().getFullYear())" :key="record.id">
+                        <td>{{ record.customerName }}</td>
+                        <td>{{ record.serviceName }}</td>
+                        <td>{{ new Date(record.date).toLocaleDateString('zh-CN') }}</td>
+                        <td>{{ record.time }}</td>
+                        <td>¥{{ record.amount }}</td>
+                        <td>{{ record.status }}</td>
+                        <td>{{ record.source }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  
+                  <!-- 年营收详情 -->
+                  <table class="data-table" v-if="detailType === 'yearlyRevenue'">
+                    <thead>
+                      <tr>
+                        <th>客户</th>
+                        <th>服务项目</th>
+                        <th>日期</th>
+                        <th>时间</th>
+                        <th>金额</th>
+                        <th>状态</th>
+                        <th>来源</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="record in revenueRecords.filter(r => new Date(r.date).getFullYear() === new Date().getFullYear())" :key="record.id">
+                        <td>{{ record.customerName }}</td>
+                        <td>{{ record.serviceName }}</td>
+                        <td>{{ new Date(record.date).toLocaleDateString('zh-CN') }}</td>
+                        <td>{{ record.time }}</td>
+                        <td>¥{{ record.amount }}</td>
+                        <td>{{ record.status }}</td>
+                        <td>{{ record.source }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="modal-footer">
+                  <button class="btn btn-primary" @click="showDetailPanel = false">关闭</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 服务项目管理 -->
+          <div v-if="currentMenu === 'services'" class="services">
+            <div class="action-bar">
+              <button class="btn btn-primary" @click="showServiceModal = true">新增服务</button>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>服务名称</th>
+                  <th>价格</th>
+                  <th>时长(分钟)</th>
+                  <th>描述</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="service in services" :key="service.id">
+                  <td>{{ service.id }}</td>
+                  <td>{{ service.name }}</td>
+                  <td>¥{{ service.price }}</td>
+                  <td>{{ service.duration }}</td>
+                  <td>{{ service.description }}</td>
+                  <td>
+                    <button class="btn btn-secondary" @click="editService(service)">编辑</button>
+                    <button class="btn btn-danger" @click="deleteService(service.id)">删除</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- 员工管理 -->
+          <div v-if="currentMenu === 'staff'" class="staff">
+            <div class="action-bar">
+              <button class="btn btn-primary" @click="showStaffModal = true">新增员工</button>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>姓名</th>
+                  <th>头像</th>
+                  <th>专长</th>
+                  <th>评分</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="staff in staffList" :key="staff.id">
+                  <td>{{ staff.id }}</td>
+                  <td>{{ staff.name }}</td>
+                  <td>
+                    <div v-if="staff.avatar">
+                      <img :src="staff.avatar" alt="头像" class="staff-avatar">
+                    </div>
+                    <div v-else class="staff-avatar-placeholder">
+                      {{ staff.name.charAt(0) }}
+                    </div>
+                  </td>
+                  <td>{{ staff.specialty }}</td>
+                  <td>{{ staff.rating }}</td>
+                  <td>
+                    <button class="btn btn-secondary" @click="editStaff(staff)">编辑</button>
+                    <button class="btn btn-danger" @click="deleteStaff(staff.id)">删除</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- 预约看板 -->
+          <div v-if="currentMenu === 'appointments'" class="appointments">
+            <div class="calendar-container">
+              <div class="calendar-header">
+                <button @click="prevMonth">&lt;</button>
+                <h3>{{ currentYear }}年{{ currentMonth + 1 }}月</h3>
+                <button @click="nextMonth">&gt;</button>
+              </div>
+              <div class="calendar-grid">
+                <div class="calendar-day" v-for="day in calendarDays" :key="day.dateStr">
+                  <div class="day-header">{{ day.day }}</div>
+                  <div v-if="day.appointments.length > 0" class="day-summary" @click="toggleDayExpand(day.dateStr)">
+                    <div class="summary-info">
+                      <span class="order-count">订单: {{ day.appointments.length }}</span>
+                      <span class="customer-count">用户: {{ getUniqueCustomers(day.appointments) }}</span>
+                    </div>
+                    <span class="expand-icon">{{ expandedDays.includes(day.dateStr) ? '▼' : '▲' }}</span>
+                  </div>
+                  <div v-show="expandedDays.includes(day.dateStr)" class="day-appointments">
+                    <div class="appointment-item" v-for="appointment in day.appointments" :key="appointment.id">
+                      <div class="appointment-info">
+                        <span class="appointment-time">{{ appointment.time }}</span>
+                        <span class="appointment-divider">|</span>
+                        <span class="appointment-service">{{ appointment.serviceName }}</span>
+                        <span class="appointment-divider">|</span>
+                        <span class="appointment-customer">{{ appointment.name }}</span>
+                        <span class="appointment-divider">|</span>
+                        <span class="appointment-status">{{ appointment.status }}</span>
+                      </div>
+                      <button v-if="appointment.status !== '已完成' && appointment.status !== '已取消'" class="btn btn-sm btn-success" @click="completeAppointment(appointment)">完成</button>
+                    </div>
+                  </div>
+                  <div v-else-if="day.appointments.length === 0" class="day-empty">
+                    暂无预约
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 排队墙 -->
+          <div v-if="currentMenu === 'queue'" class="queue">
+            <div class="queue-header">
+              <h3>排队队列</h3>
+              <div class="current-number">
+                <div class="current-number-content">
+                  <h4>当前叫号</h4>
+                  <div class="number">{{ queue.currentNumber }}</div>
+                  <button class="btn btn-primary" @click="callNext">叫号</button>
+                </div>
+              </div>
+            </div>
+            <div class="queue-records-container">
+              <div class="queue-records-wrapper">
+                <!-- 等待中 -->
+                <div class="queue-section">
+                  <h4>等待中</h4>
+                  <div class="section-content">
+                    <div class="queue-item" v-for="item in queueList.filter(item => item.status === '等待中' || item.status === '美发中' || item.status === 'called' || item.status === 'servicing')" :key="item.id">
+                      <div class="queue-number">{{ item.number }}</div>
+                      <div class="queue-info">
+                        <div class="queue-customer">{{ item.customerName || item.name }}</div>
+                        <div class="queue-time">{{ item.created_at ? item.created_at.split('T')[1]?.substring(0, 5) : '' }}</div>
+                        <div class="queue-phone">{{ item.customerPhone || item.phone || '无' }}</div>
+                      </div>
+                      <div class="queue-status-actions">
+                        <span class="queue-status">{{ item.status }}</span>
+                        <div class="queue-actions">
+                          <button class="btn btn-sm btn-success" @click="updateQueueStatus(item, 'completed')">完成</button>
+                          <button class="btn btn-sm btn-danger" @click="updateQueueStatus(item, 'cancelled')">取消</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div v-if="queueList.filter(item => item.status === '等待中' || item.status === '美发中' || item.status === 'called' || item.status === 'servicing').length === 0" class="empty-queue">
+                      暂无等待中记录
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 已完成 -->
+                <div class="queue-section">
+                  <h4>已完成</h4>
+                  <div class="section-content">
+                    <div class="queue-item" v-for="item in queueList.filter(item => item.status === '已完成' || item.status === 'completed')" :key="item.id">
+                      <div class="queue-number">{{ item.number }}</div>
+                      <div class="queue-info">
+                        <div class="queue-customer">{{ item.customerName || item.name }}</div>
+                        <div class="queue-time">{{ item.created_at ? item.created_at.split('T')[1]?.substring(0, 5) : '' }}</div>
+                        <div class="queue-phone">{{ item.customerPhone || item.phone || '无' }}</div>
+                      </div>
+                      <div class="queue-status">{{ item.status }}</div>
+                    </div>
+                    <div v-if="queueList.filter(item => item.status === '已完成' || item.status === 'completed').length === 0" class="empty-queue">
+                      暂无已完成记录
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 已取消 -->
+                <div class="queue-section">
+                  <h4>已取消</h4>
+                  <div class="section-content">
+                    <div class="queue-item" v-for="item in queueList.filter(item => item.status === '已取消' || item.status === 'cancelled' || item.status === '已过号' || item.status === 'skipped')" :key="item.id">
+                      <div class="queue-number">{{ item.number }}</div>
+                      <div class="queue-info">
+                        <div class="queue-customer">{{ item.customerName || item.name }}</div>
+                        <div class="queue-time">{{ item.created_at ? item.created_at.split('T')[1]?.substring(0, 5) : '' }}</div>
+                        <div class="queue-phone">{{ item.customerPhone || item.phone || '无' }}</div>
+                      </div>
+                      <div class="queue-status">{{ item.status }}</div>
+                    </div>
+                    <div v-if="queueList.filter(item => item.status === '已取消' || item.status === 'cancelled' || item.status === '已过号' || item.status === 'skipped').length === 0" class="empty-queue">
+                      暂无已取消记录
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 客户档案 -->
+          <div v-if="currentMenu === 'customers'" class="customers">
+            <div class="action-bar">
+              <div class="search-container">
+                <input type="text" v-model="customerSearch" placeholder="搜索客户姓名、服务项目或理发师" class="search-input">
+                <button class="btn btn-secondary" @click="searchCustomers">搜索</button>
+              </div>
+              <div class="filter-container">
+                <select v-model="genderFilter" class="filter-select">
+                  <option value="all">全部性别</option>
+                  <option value="male">男</option>
+                  <option value="female">女</option>
+                </select>
+                <input type="date" v-model="dateFilter" class="date-input">
+                <button class="btn btn-secondary" @click="filterCustomers">筛选</button>
+              </div>
+            </div>
+            <h3>客户列表</h3>
+            <p>客户数量: {{ filteredCustomers.length }}</p>
+            <div class="customer-list">
+              <div v-for="customer in filteredCustomers" :key="customer.id" class="customer-card">
+                <div class="customer-summary" @click="toggleCustomerExpand(customer.id)">
+                  <div class="customer-summary-left">
+                    <span class="customer-id">ID: {{ customer.id }}</span>
+                    <span class="customer-icon">{{ getGenderIcon(customer.gender) }}</span>
+                    <span class="customer-name">{{ customer.name }}</span>
+                    <span v-if="customer.phone" class="customer-phone">| {{ customer.phone }}</span>
+                  </div>
+                  <div class="customer-summary-center">
+                    <span class="gender-label">性别：</span>
+                    <span>{{ customer.gender === 'male' ? '男' : customer.gender === 'female' ? '女' : '未知' }}</span>
+                  </div>
+                  <div class="customer-summary-right">
+                    <span class="order-count">总订单数: {{ customer.orderCount }}</span>
+                  </div>
+                  <span class="expand-icon">{{ expandedCustomers.includes(customer.id) ? '▼' : '▲' }}</span>
+                </div>
+                <div v-show="expandedCustomers.includes(customer.id)" class="customer-detail">
+                  <div class="customer-info-detail">
+                    <div class="info-item">
+                      <label>姓名：</label>
+                      <span>{{ customer.name }}</span>
+                    </div>
+                    <div class="info-item">
+                      <label>手机号：</label>
+                      <span>{{ customer.phone }}</span>
+                    </div>
+                    <div class="info-item">
+                      <label>性别：</label>
+                      <span>{{ customer.gender === 'male' ? '男' : customer.gender === 'female' ? '女' : '未知' }}</span>
+                    </div>
+                    <div class="info-item">
+                      <label>总订单数：</label>
+                      <span>{{ customer.orderCount }}</span>
+                    </div>
+                  </div>
+                  <div class="order-history">
+                    <h4>历史订单</h4>
+                    <table class="order-table">
+                      <thead>
+                        <tr>
+                          <th>订单号</th>
+                          <th>服务项目</th>
+                          <th>日期</th>
+                          <th>时间</th>
+                          <th>状态</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="order in customer.orders" :key="order.id">
+                          <td>{{ order.id }}</td>
+                          <td>{{ order.serviceName }}</td>
+                          <td>{{ order.date }}</td>
+                          <td>{{ order.time }}</td>
+                          <td :class="['order-status', getOrderStatusClass(order.status)]">{{ order.status }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="filteredCustomers.length === 0" class="empty-state">
+              <p>暂无客户数据</p>
+            </div>
+          </div>
+          
+          <!-- 评价管理 -->
+          <div v-if="currentMenu === 'ratings'" class="ratings">
+            <div class="action-bar">
+              <div class="search-container">
+                <input type="text" v-model="ratingSearch" placeholder="搜索客户、理发师或评价内容" class="search-input">
+                <button class="btn btn-secondary" @click="searchRatings">搜索</button>
+              </div>
+              <div class="filter-container">
+                <select v-model="ratingStaffFilter" class="filter-select">
+                  <option value="">全部理发师</option>
+                  <option v-for="staff in staffList" :key="staff.id" :value="staff.id">{{ staff.name }}</option>
+                </select>
+                <div class="date-range">
+                  <input type="date" v-model="ratingStartDate" class="date-input" placeholder="开始日期">
+                  <span style="margin: 0 5px;">至</span>
+                  <input type="date" v-model="ratingEndDate" class="date-input" placeholder="结束日期">
+                </div>
+                <button class="btn btn-secondary" @click="filterRatings">筛选</button>
+                <button class="btn btn-secondary" @click="resetRatingFilters">重置</button>
+              </div>
+            </div>
+            <h3>评价列表</h3>
+            <p>评价数量: {{ ratingsList.length }}</p>
+            <div class="ratings-list">
+              <div v-for="rating in ratingsList" :key="rating.id" class="rating-card">
+                <div class="rating-summary" @click="toggleRatingExpand(rating.id)">
+                  <div class="rating-summary-left">
+                    <span class="customer-info-inline">
+                      <span class="customer-icon">{{ getGenderIcon(rating.customerGender) }}</span>
+                      <span class="customer-name">{{ rating.customerName || '匿名用户' }}</span>
+                      <span v-if="rating.customerPhone" class="customer-phone">| {{ rating.customerPhone }}</span>
+                    </span>
+                  </div>
+                  <div class="rating-summary-center">
+                    <span class="staff-label">理发师：</span>
+                    <span class="staff-name">{{ rating.staffName || '未知理发师' }}</span>
+                  </div>
+                  <div class="rating-summary-right">
+                    <div class="stars-inline">
+                      <span v-for="i in 5" :key="i" class="star" :class="i <= Math.floor(rating.total_rating) ? 'filled' : ''">★</span>
+                      <span class="total-score-inline">{{ rating.total_rating }}分</span>
+                    </div>
+                  </div>
+                  <div class="rating-summary-time">
+                    {{ formatDate(rating.created_at) }}
+                  </div>
+                  <span class="expand-icon">{{ expandedRatings.includes(rating.id) ? '▼' : '▲' }}</span>
+                </div>
+                <div v-show="expandedRatings.includes(rating.id)" class="rating-detail">
+                  <div class="rating-header">
+                    <div class="rating-staff">
+                      <span class="service-name">{{ rating.serviceName || '未知服务' }}</span>
+                    </div>
+                    <div class="rating-date">
+                      预约时间: {{ formatDateShort(rating.appointment_date) }} {{ rating.appointment_time }}
+                    </div>
+                  </div>
+                  <div class="rating-scores">
+                    <div class="score-item">
+                      <span class="score-label">服务态度</span>
+                      <div class="stars">
+                        <span v-for="i in 5" :key="i" class="star" :class="i <= rating.service_attitude ? 'filled' : ''">★</span>
+                      </div>
+                      <span class="score-value">{{ rating.service_attitude }}分</span>
+                    </div>
+                    <div class="score-item">
+                      <span class="score-label">技术水平</span>
+                      <div class="stars">
+                        <span v-for="i in 5" :key="i" class="star" :class="i <= rating.technical_skill ? 'filled' : ''">★</span>
+                      </div>
+                      <span class="score-value">{{ rating.technical_skill }}分</span>
+                    </div>
+                    <div class="score-item">
+                      <span class="score-label">沟通能力</span>
+                      <div class="stars">
+                        <span v-for="i in 5" :key="i" class="star" :class="i <= rating.communication ? 'filled' : ''">★</span>
+                      </div>
+                      <span class="score-value">{{ rating.communication }}分</span>
+                    </div>
+                  </div>
+                  <div class="rating-total">
+                    <span class="total-label">综合评分</span>
+                    <div class="stars">
+                      <span v-for="i in 5" :key="i" class="star" :class="i <= Math.floor(rating.total_rating) ? 'filled' : ''">★</span>
+                    </div>
+                    <span class="total-score">{{ rating.total_rating }}分</span>
+                  </div>
+                  <div v-if="rating.comment" class="rating-comment">
+                    <div class="comment-label">评价内容</div>
+                    <p class="comment-text">{{ rating.comment }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="ratingsList.length === 0" class="empty-state">
+              <p>暂无评价数据</p>
+            </div>
+          </div>
+          
+          <!-- 商户设置 -->
+          <div v-if="currentMenu === 'merchant'" class="merchant-settings">
+            <div class="settings-header">
+              <h3>商户信息设置</h3>
+              <p>修改商户基本信息</p>
+            </div>
+            
+            <div class="settings-form">
+              <div class="form-group">
+                <label>商户名称 *</label>
+                <input type="text" v-model="merchantForm.name" placeholder="请输入商户名称" class="form-control">
+              </div>
+              
+              <div class="form-group">
+                <label>商户地址 *</label>
+                <textarea v-model="merchantForm.address" placeholder="请输入商户地址" class="form-control" rows="3"></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label>联系电话 *</label>
+                <input type="tel" v-model="merchantForm.phone" placeholder="请输入联系电话" class="form-control">
+              </div>
+              
+              <div class="form-group">
+                <label>商户描述</label>
+                <textarea v-model="merchantForm.description" placeholder="请输入商户描述" class="form-control" rows="4"></textarea>
+              </div>
+              
+              <div class="form-actions">
+                <button class="btn btn-secondary" @click="resetMerchantForm">重置</button>
+                <button class="btn btn-primary" @click="saveMerchantInfo" :disabled="!merchantForm.name || !merchantForm.address || !merchantForm.phone">保存设置</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 服务编辑模态框 -->
+    <div class="modal" v-if="showServiceModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>{{ editingService ? '编辑服务' : '新增服务' }}</h3>
+          <button class="close-btn" @click="showServiceModal = false">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>服务名称</label>
+            <input type="text" v-model="serviceForm.name" placeholder="请输入服务名称">
+          </div>
+          <div class="form-group">
+            <label>价格</label>
+            <input type="number" v-model="serviceForm.price" placeholder="请输入价格">
+          </div>
+          <div class="form-group">
+            <label>时长(分钟)</label>
+            <input type="number" v-model="serviceForm.duration" placeholder="请输入时长">
+          </div>
+          <div class="form-group">
+            <label>描述</label>
+            <textarea v-model="serviceForm.description" placeholder="请输入服务描述"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="showServiceModal = false">取消</button>
+          <button class="btn btn-primary" @click="saveService">保存</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 员工编辑模态框 -->
+    <div class="modal" v-if="showStaffModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>{{ editingStaff ? '编辑员工' : '新增员工' }}</h3>
+          <button class="close-btn" @click="showStaffModal = false">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>姓名</label>
+            <input type="text" v-model="staffForm.name" placeholder="请输入姓名">
+          </div>
+          <div class="form-group">
+            <label>头像</label>
+            <input type="text" v-model="staffForm.avatar" placeholder="请输入头像URL">
+          </div>
+          <div class="form-group">
+            <label>专长</label>
+            <input type="text" v-model="staffForm.specialty" placeholder="请输入专长">
+          </div>
+          <div class="form-group">
+            <label>评分</label>
+            <input type="number" v-model="staffForm.rating" step="0.1" placeholder="请输入评分">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="showStaffModal = false">取消</button>
+          <button class="btn btn-primary" @click="saveStaff">保存</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 客户详情模态框 -->
+    <div class="modal" v-if="showCustomerModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>客户详情</h3>
+          <button class="close-btn" @click="showCustomerModal = false">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="customer-info">
+            <div class="info-item">
+              <label>姓名：</label>
+              <span>{{ selectedCustomer.name }}</span>
+            </div>
+            <div class="info-item">
+              <label>手机号：</label>
+              <span>{{ selectedCustomer.phone }}</span>
+            </div>
+            <div class="info-item">
+              <label>总订单数：</label>
+              <span>{{ selectedCustomer.orderCount }}</span>
+            </div>
+          </div>
+          <div class="order-history">
+            <h4>历史订单</h4>
+            <table class="order-table">
+              <thead>
+                <tr>
+                  <th>订单号</th>
+                  <th>服务项目</th>
+                  <th>日期</th>
+                  <th>时间</th>
+                  <th>状态</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="order in selectedCustomer.orders" :key="order.id">
+                  <td>{{ order.id }}</td>
+                  <td>{{ order.serviceName }}</td>
+                  <td>{{ order.date }}</td>
+                  <td>{{ order.time }}</td>
+                  <td>{{ order.status }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" @click="showCustomerModal = false">关闭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.47/vue.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- 引入模块化核心库 -->
+  <script src="js/main.js"></script>
+  <!-- 引入模块化 Vue 应用 -->
+  <script src="js/app-modular.js"></script>
+  <!-- 保留原代码作为备份（如需要可取消注释） -->
+  <!-- <script src="script.js?v=1.4"></script> -->
+</body>
+</html>

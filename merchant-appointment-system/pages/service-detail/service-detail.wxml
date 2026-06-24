@@ -1,0 +1,77 @@
+<view class="service-detail-container">
+  <view class="header" style="display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #e5e7eb;">
+    <view class="back-btn" bindtap="goBack" style="margin-right: 16px;">
+      <text class="back-icon" style="font-size: 24px; color: #111827;">←</text>
+    </view>
+    <text class="header-title" style="font-size: 20px; font-weight: 600; color: #111827;">服务详情</text>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">
+    加载中...
+  </view>
+
+  <view wx:else>
+    <!-- 服务详情 -->
+    <view class="card">
+      <text class="section-title">服务信息</text>
+      <view class="info-item">
+        <text class="info-label">服务项目</text>
+        <text class="info-value">{{service.name}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">服务价格</text>
+        <text class="info-value price">¥{{service.price}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">服务时长</text>
+        <text class="info-value">{{service.duration}}分钟</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">服务描述</text>
+        <text class="info-value">{{service.description}}</text>
+      </view>
+    </view>
+
+    <!-- 员工选择 -->
+    <view class="section">
+      <text class="section-title">选择理发师</text>
+      <scroll-view class="staff-scroll" scroll-x="true" enable-flex="true">
+        <view class="staff-container">
+          <view wx:for="{{staffList}}" wx:key="id" 
+                class="staff-item {{selectedStaff && selectedStaff.id == item.id ? 'active' : ''}}" 
+                bindtap="selectStaff" data-id="{{item.id}}">
+            <view class="staff-avatar">{{item.name.charAt(0)}}</view>
+            <view class="staff-info">
+              <text class="staff-name">{{item.name}}</text>
+              <text class="staff-specialty">{{item.specialty}}</text>
+              <text class="staff-rating">⭐ {{item.rating || 5.0}}</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 日期选择 -->
+    <view class="section">
+      <text class="section-title">选择日期</text>
+      <picker range="{{dateOptions}}" range-key="label" value="{{selectedDateIndex}}" bindchange="selectDate">
+        <view class="input" style="cursor: pointer;">
+          {{dateOptions[selectedDateIndex].label}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 时间选择 -->
+    <view class="section">
+      <text class="section-title">选择时间</text>
+      <picker range="{{timeOptions}}" range-key="label" value="{{selectedTimeIndex}}" bindchange="selectTime">
+        <view class="input" style="cursor: pointer;">
+          {{timeOptions[selectedTimeIndex].label}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 预约按钮 -->
+    <button class="btn btn-primary" bindtap="makeAppointment">立即预约</button>
+  </view>
+</view>

@@ -1,0 +1,59 @@
+<view class="modal-overlay" wx:if="{{visible}}">
+  <view class="modal-content" bindtap="handleContentTap">
+    <!-- 步骤0：授权询问 -->
+    <view wx:if="{{step === 0}}">
+      <view class="modal-header">
+        <text class="modal-title">用户信息授权</text>
+      </view>
+      <view class="modal-body">
+        <text class="modal-desc">是否同意授权获取您的微信名称和性别信息？</text>
+        <button class="modal-btn primary" bindtap="handleAgree">同意授权</button>
+        <button class="modal-btn secondary" bindtap="handleDisagree">使用默认信息</button>
+      </view>
+    </view>
+    
+    <!-- 步骤1：登录 -->
+    <view wx:if="{{step === 1}}">
+      <view class="modal-header">
+        <text class="modal-title">登录</text>
+      </view>
+      <view class="modal-body">
+        <view class='info'>为保证您的正常使用，请进行 授权 ！</view>
+        <button class="modal-btn primary" open-type="getUserInfo" bindgetuserinfo="getUserInfo">微信快捷登录</button>
+      </view>
+    </view>
+    
+    <!-- 步骤2：选择性别 -->
+    <view wx:elif="{{step === 2}}">
+      <view class="modal-header">
+        <text class="modal-title">选择性别</text>
+      </view>
+      <view class="modal-body">
+        <text class="modal-desc">请选择您的性别</text>
+        <view class="gender-selector">
+          <view class="gender-option {{selectedGender === 'male' ? 'selected' : ''}}" bindtap="selectGender" data-gender="male">
+            <text class="gender-icon male-icon">♂</text>
+            <text class="gender-text">男</text>
+          </view>
+          <view class="gender-option {{selectedGender === 'female' ? 'selected' : ''}}" bindtap="selectGender" data-gender="female">
+            <text class="gender-icon female-icon">♀</text>
+            <text class="gender-text">女</text>
+          </view>
+        </view>
+        <button class="modal-btn primary" bindtap="confirmGender">确认</button>
+      </view>
+    </view>
+    
+    <!-- 步骤3：填写手机号 -->
+    <view wx:elif="{{step === 3}}">
+      <view class="modal-header">
+        <text class="modal-title">填写手机号</text>
+      </view>
+      <view class="modal-body">
+        <text class="modal-desc">请填写您的手机号，方便我们提醒您预约时间</text>
+        <input class="phone-input" placeholder="请输入手机号" bindinput="inputPhone" value="{{phone}}" placeholder-class="placeholder-text" />
+        <button class="modal-btn primary" bindtap="confirmPhone" disabled="{{!phone || phone.length !== 11}}">确认</button>
+      </view>
+    </view>
+  </view>
+</view>

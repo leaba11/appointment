@@ -1,0 +1,57 @@
+# 依赖目录
+node_modules/
+
+# 环境变量（包含数据库密码、JWT密钥等）
+.env
+.env.*
+!.env.example
+
+# 日志文件
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE配置
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# 测试覆盖率
+coverage/
+.nyc_output/
+
+# 微信小程序相关
+miniprogram_npm/
+miniprogram_dev/
+
+# 构建输出
+dist/
+build/
+
+# 临时文件
+*.tmp
+*.temp
+.cache/
+
+# 数据库相关（本地数据库文件）
+*.sql.bak
+*.db
+
+# 安全文件（包含敏感信息）
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# Git相关（如果有子模块）
+.gitmodules

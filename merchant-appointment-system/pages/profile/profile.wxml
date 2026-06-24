@@ -1,0 +1,335 @@
+<view class="profile-container">
+  <!-- 用户信息区域 -->
+  <view class="user-info-section">
+    <view class="user-avatar" bindtap="goToUserSetting">
+      <image src="{{userInfo && userInfo.avatarUrl ? userInfo.avatarUrl : (userInfo && userInfo.gender === 'male' ? '/images/1.png' : '/images/2.png')}}"></image>
+    </view>
+    <view class="user-details" bindtap="goToUserSetting">
+      <text class="user-name">{{userInfo && userInfo.nickName ? userInfo.nickName : '未登录'}}</text>
+      <text class="user-phone">{{userInfo && userInfo.phone ? userInfo.phone : '点击登录'}}</text>
+    </view>
+  </view>
+
+  <!-- 预约记录 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-text">我的预约</text>
+    </view>
+    
+    <!-- 模块切换按钮 -->
+    <view class="module-tabs">
+      <button 
+        class="tab-btn {{activeModule === 'normal' ? 'active' : ''}}" 
+        bindtap="switchModule" 
+        data-module="normal"
+      >
+        正常预约 {{normalAppointments.length}}
+      </button>
+      <button 
+        class="tab-btn {{activeModule === 'completed' ? 'active' : ''}}" 
+        bindtap="switchModule" 
+        data-module="completed"
+      >
+        已完成 {{completedAppointments.length}}
+      </button>
+      <button 
+        class="tab-btn {{activeModule === 'cancelled' ? 'active' : ''}}" 
+        bindtap="switchModule" 
+        data-module="cancelled"
+      >
+        取消预约 {{cancelledAppointments.length}}
+      </button>
+    </view>
+    
+    <!-- 正常预约模块 -->
+    <view wx:if="{{activeModule === 'normal'}}" class="appointment-subsection">
+      <view class="appointment-list">
+        <block wx:for="{{displayAppointments}}" wx:key="id">
+          <view class="appointment-item" bindtap="goToAppointmentDetail" data-id="{{item.id}}">
+            <view class="appointment-info">
+              <text class="service-name">{{item.serviceName}}</text>
+              <text class="appointment-time">{{item.date}} {{item.time}}</text>
+              <text class="staff-name">{{item.staffName ? '理发师: ' + item.staffName : '未选择理发师'}}</text>
+            </view>
+            <view class="appointment-status">
+              <text class="status-tag {{item.status}}">{{item.status}}</text>
+            </view>
+            <button wx:if="{{item.status === '待确认' || item.status === '等待中'}}" class="cancel-btn" catchtap="cancelAppointment" data-id="{{item.id}}">取消预约</button>
+          </view>
+        </block>
+        <view wx:if="{{displayAppointments.length === 0}}" class="empty-state">
+          <text class="empty-text">暂无正常预约记录</text>
+        </view>
+      </view>
+      
+      <!-- 翻页控件 -->
+      <view wx:if="{{displayAppointments.length > 0}}" class="pagination">
+        <button wx:if="{{currentPage > 1}}" class="page-btn" bindtap="changePage" data-page="{{currentPage - 1}}">上一页</button>
+        <button wx:else class="page-btn disabled">上一页</button>
+        <text class="page-info">第 {{currentPage}} 页，共 {{totalPages}} 页</text>
+        <button wx:if="{{currentPage < totalPages}}" class="page-btn" bindtap="changePage" data-page="{{currentPage + 1}}">下一页</button>
+        <button wx:else class="page-btn disabled">下一页</button>
+      </view>
+    </view>
+    
+    <!-- 已完成模块 -->
+    <view wx:if="{{activeModule === 'completed'}}" class="appointment-subsection">
+      <view class="appointment-list">
+        <block wx:for="{{displayAppointments}}" wx:key="id">
+          <view class="appointment-item" bindtap="goToAppointmentDetail" data-id="{{item.id}}">
+            <view class="appointment-info">
+              <text class="service-name">{{item.serviceName}}</text>
+              <text class="appointment-time">{{item.date}} {{item.time}}</text>
+              <text class="staff-name">{{item.staffName ? '理发师: ' + item.staffName : '未选择理发师'}}</text>
+              <!-- 显示已评分 -->
+              <view wx:if="{{item.hasRated}}" class="rating-display">
+                <text class="rating-label">已评分:</text>
+                <view class="stars">
+                  <text wx:for="5" wx:key="index" class="star {{index < item.rating ? 'filled' : ''}}">★</text>
+                </view>
+              </view>
+            </view>
+            <view class="appointment-status">
+              <text class="status-tag {{item.status}}">{{item.status}}</text>
+              <!-- 评分按钮 -->
+              <button 
+                wx:if="{{!item.hasRated && item.staffName}}" 
+                class="rate-btn" 
+                catchtap="openRatingModal" 
+                data-id="{{item.id}}"
+                data-staff-id="{{item.staffId}}"
+                data-staff-name="{{item.staffName}}"
+                data-service-name="{{item.serviceName}}"
+              >
+                去评分
+              </button>
+              <!-- 已评分按钮 -->
+              <view 
+                wx:if="{{item.hasRated}}" 
+                class="rate-btn rated-view"
+              >
+                已评分
+              </view>
+            </view>
+          </view>
+        </block>
+        <view wx:if="{{displayAppointments.length === 0}}" class="empty-state">
+          <text class="empty-text">暂无已完成预约记录</text>
+        </view>
+      </view>
+      
+      <!-- 翻页控件 -->
+      <view wx:if="{{displayAppointments.length > 0}}" class="pagination">
+        <button wx:if="{{currentPage > 1}}" class="page-btn" bindtap="changePage" data-page="{{currentPage - 1}}">上一页</button>
+        <button wx:else class="page-btn disabled">上一页</button>
+        <text class="page-info">第 {{currentPage}} 页，共 {{totalPages}} 页</text>
+        <button wx:if="{{currentPage < totalPages}}" class="page-btn" bindtap="changePage" data-page="{{currentPage + 1}}">下一页</button>
+        <button wx:else class="page-btn disabled">下一页</button>
+      </view>
+    </view>
+    
+    <!-- 取消预约模块 -->
+    <view wx:if="{{activeModule === 'cancelled'}}" class="appointment-subsection">
+      <view class="appointment-list">
+        <block wx:for="{{displayAppointments}}" wx:key="id">
+          <view class="appointment-item" bindtap="goToAppointmentDetail" data-id="{{item.id}}">
+            <view class="appointment-info">
+              <text class="service-name">{{item.serviceName}}</text>
+              <text class="appointment-time">{{item.date}} {{item.time}}</text>
+              <text class="staff-name">{{item.staffName ? '理发师: ' + item.staffName : '未选择理发师'}}</text>
+            </view>
+            <view class="appointment-status">
+              <text class="status-tag {{item.status}}">{{item.status}}</text>
+            </view>
+          </view>
+        </block>
+        <view wx:if="{{displayAppointments.length === 0}}" class="empty-state">
+          <text class="empty-text">暂无取消预约记录</text>
+        </view>
+      </view>
+      
+      <!-- 翻页控件 -->
+      <view wx:if="{{displayAppointments.length > 0}}" class="pagination">
+        <button wx:if="{{currentPage > 1}}" class="page-btn" bindtap="changePage" data-page="{{currentPage - 1}}">上一页</button>
+        <button wx:else class="page-btn disabled">上一页</button>
+        <text class="page-info">第 {{currentPage}} 页，共 {{totalPages}} 页</text>
+        <button wx:if="{{currentPage < totalPages}}" class="page-btn" bindtap="changePage" data-page="{{currentPage + 1}}">下一页</button>
+        <button wx:else class="page-btn disabled">下一页</button>
+      </view>
+    </view>
+  </view>
+
+
+
+  <!-- 联系商户 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-text">联系商户</text>
+    </view>
+    <view class="contact-list">
+      <view class="contact-item" bindtap="showPhoneModal">
+        <text class="contact-icon">📞</text>
+        <text class="contact-text">电话咨询</text>
+      </view>
+      <view class="contact-item" bindtap="showAddressModal">
+        <text class="contact-icon">📍</text>
+        <text class="contact-text">查看地址</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 其他 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-text">其他</text>
+    </view>
+    <view class="other-list">
+      <view class="other-item" bindtap="goToAbout">
+        <text class="other-icon">ℹ️</text>
+        <text class="other-text">关于我们</text>
+      </view>
+      <view class="other-item" bindtap="goToSettings">
+        <text class="other-icon">⚙️</text>
+        <text class="other-text">设置</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 登录弹窗 -->
+  <login-modal 
+    visible="{{showLoginModal}}" 
+    bind:close="onCloseLoginModal"
+  />
+
+  <!-- 评分弹窗 -->
+  <view wx:if="{{showRatingModal}}" class="rating-modal" bindtap="closeRatingModal">
+    <view class="rating-modal-content" catchtap>
+      <view class="rating-header">
+        <text class="rating-title">评价理发师</text>
+        <text class="rating-close" bindtap="closeRatingModal">×</text>
+      </view>
+      <view class="rating-body">
+        <view class="rating-info">
+          <text class="rating-staff-name">{{ratingData.staffName}}</text>
+          <text class="rating-service-name">{{ratingData.serviceName}}</text>
+        </view>
+        <view class="rating-section">
+          <text class="rating-label">服务态度</text>
+          <view class="star-rating">
+            <text class="star {{0 < ratingData.serviceAttitude ? 'filled' : ''}}" data-type="serviceAttitude" data-value="1" bindtap="setRating">★</text>
+            <text class="star {{1 < ratingData.serviceAttitude ? 'filled' : ''}}" data-type="serviceAttitude" data-value="2" bindtap="setRating">★</text>
+            <text class="star {{2 < ratingData.serviceAttitude ? 'filled' : ''}}" data-type="serviceAttitude" data-value="3" bindtap="setRating">★</text>
+            <text class="star {{3 < ratingData.serviceAttitude ? 'filled' : ''}}" data-type="serviceAttitude" data-value="4" bindtap="setRating">★</text>
+            <text class="star {{4 < ratingData.serviceAttitude ? 'filled' : ''}}" data-type="serviceAttitude" data-value="5" bindtap="setRating">★</text>
+          </view>
+        </view>
+        <view class="rating-section">
+          <text class="rating-label">技术水平</text>
+          <view class="star-rating">
+            <text class="star {{0 < ratingData.technicalSkill ? 'filled' : ''}}" data-type="technicalSkill" data-value="1" bindtap="setRating">★</text>
+            <text class="star {{1 < ratingData.technicalSkill ? 'filled' : ''}}" data-type="technicalSkill" data-value="2" bindtap="setRating">★</text>
+            <text class="star {{2 < ratingData.technicalSkill ? 'filled' : ''}}" data-type="technicalSkill" data-value="3" bindtap="setRating">★</text>
+            <text class="star {{3 < ratingData.technicalSkill ? 'filled' : ''}}" data-type="technicalSkill" data-value="4" bindtap="setRating">★</text>
+            <text class="star {{4 < ratingData.technicalSkill ? 'filled' : ''}}" data-type="technicalSkill" data-value="5" bindtap="setRating">★</text>
+          </view>
+        </view>
+        <view class="rating-section">
+          <text class="rating-label">沟通能力</text>
+          <view class="star-rating">
+            <text class="star {{0 < ratingData.communication ? 'filled' : ''}}" data-type="communication" data-value="1" bindtap="setRating">★</text>
+            <text class="star {{1 < ratingData.communication ? 'filled' : ''}}" data-type="communication" data-value="2" bindtap="setRating">★</text>
+            <text class="star {{2 < ratingData.communication ? 'filled' : ''}}" data-type="communication" data-value="3" bindtap="setRating">★</text>
+            <text class="star {{3 < ratingData.communication ? 'filled' : ''}}" data-type="communication" data-value="4" bindtap="setRating">★</text>
+            <text class="star {{4 < ratingData.communication ? 'filled' : ''}}" data-type="communication" data-value="5" bindtap="setRating">★</text>
+          </view>
+        </view>
+        <view class="rating-section">
+          <text class="rating-label">综合评分</text>
+          <view class="star-rating disabled">
+            <text wx:for="5" wx:key="index" class="star {{index < ratingData.fullStars ? 'filled' : ''}}">★</text>
+          </view>
+          <text class="total-score">{{ratingData.totalRating}}分</text>
+        </view>
+        <view class="rating-comment">
+          <textarea 
+            class="comment-input" 
+            placeholder="请输入评价内容（选填）"
+            value="{{ratingData.comment}}"
+            bindinput="onCommentInput"
+          />
+        </view>
+      </view>
+      <view class="rating-footer">
+        <button class="submit-btn" bindtap="submitRating">提交评价</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 电话咨询弹窗 -->
+  <view wx:if="{{showPhoneModal}}" class="phone-modal" bindtap="closePhoneModal">
+    <view class="phone-modal-content" catchtap>
+      <view class="phone-modal-header">
+        <text class="phone-modal-title">联系商户</text>
+        <text class="phone-modal-close" bindtap="closePhoneModal">×</text>
+      </view>
+      <view class="phone-modal-body">
+        <view class="phone-number" bindtap="showPhoneOptions">
+          <text class="phone-icon">📞</text>
+          <text class="phone-text">{{merchantPhone}}</text>
+        </view>
+        <text class="phone-tip">点击号码可拨打电话或复制</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 电话操作弹窗 -->
+  <view wx:if="{{showPhoneOptions}}" class="phone-options-modal" bindtap="closePhoneOptions">
+    <view class="phone-options-content" catchtap>
+      <view class="phone-options-header">
+        <text class="phone-options-title">{{merchantPhone}}</text>
+      </view>
+      <view class="phone-options-body">
+        <view class="phone-option-item" bindtap="makePhoneCall">
+          <text class="option-icon">📲</text>
+          <text class="option-text">拨打电话</text>
+        </view>
+        <view class="phone-option-item" bindtap="copyPhoneNumber">
+          <text class="option-icon">📋</text>
+          <text class="option-text">复制号码</text>
+        </view>
+        <view class="phone-option-item cancel" bindtap="closePhoneOptions">
+          <text class="option-icon">❌</text>
+          <text class="option-text">取消</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 地址弹窗 -->
+  <view wx:if="{{showAddressModal}}" class="address-modal" bindtap="closeAddressModal">
+    <view class="address-modal-content" catchtap>
+      <view class="address-modal-header">
+        <text class="address-modal-title">商户地址</text>
+        <text class="address-modal-close" bindtap="closeAddressModal">×</text>
+      </view>
+      <view class="address-modal-body">
+        <view class="address-card">
+          <view class="address-info">
+            <text class="address-icon">📍</text>
+            <text class="address-text">{{merchantAddress}}</text>
+          </view>
+        </view>
+        <view class="address-actions">
+          <view class="address-action-item" bindtap="copyAddress">
+            <text class="action-icon">📋</text>
+            <text class="action-text">复制地址</text>
+          </view>
+          <view class="address-action-item" bindtap="openMap">
+            <text class="action-icon">🗺️</text>
+            <text class="action-text">打开地图</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

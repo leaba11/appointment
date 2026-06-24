@@ -1,0 +1,149 @@
+/* 登录弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  z-index: 99999;
+  pointer-events: auto;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 20rpx 20rpx 0 0;
+  width: 100%;
+  max-height: 80vh;
+  padding: 40rpx;
+  animation: slide-up 0.3s ease-out;
+  touch-action: auto;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 40rpx;
+  color: #999;
+  cursor: pointer;
+}
+
+.modal-body {
+  text-align: center;
+}
+
+.modal-desc {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 40rpx;
+}
+
+.info {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 30rpx;
+  text-align: center;
+  font-weight: 500;
+}
+
+.modal-btn {
+  width: 100%;
+  height: 80rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.modal-btn.primary {
+  background-color: #4F46E5;
+  color: white;
+  border: none;
+}
+
+.modal-btn.secondary {
+  background-color: white;
+  color: #4F46E5;
+  border: 1rpx solid #4F46E5;
+}
+
+/* 性别选择器样式 */
+.gender-selector {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40rpx;
+}
+
+.gender-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 30rpx;
+  padding: 20rpx;
+  border-radius: 10rpx;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.gender-option.selected {
+  background-color: #F0F0F0;
+}
+
+.gender-icon {
+  font-size: 60rpx;
+  margin-bottom: 10rpx;
+}
+
+.male-icon {
+  color: #87CEEB;
+}
+
+.female-icon {
+  color: #FFB6C1;
+}
+
+.gender-text {
+  font-size: 24rpx;
+  color: #333;
+}
+
+/* 手机号输入框样式 */
+.phone-input {
+  width: 100%;
+  height: 80rpx;
+  border: 1rpx solid #E0E0E0;
+  border-radius: 10rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  margin-bottom: 30rpx;
+  box-sizing: border-box;
+}
+
+.placeholder-text {
+  color: #999;
+}

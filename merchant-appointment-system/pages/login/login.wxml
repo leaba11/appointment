@@ -1,0 +1,20 @@
+<view class="container">
+  <view class="login-box">
+    <view class="logo">
+      <image src="../../images/1.png" mode="aspectFit" class="logo-img"></image>
+      <text class="logo-text">商户预约系统</text>
+    </view>
+    
+    <view class="avatar-section">
+      <image src="{{userInfo.avatarUrl || '../../images/2.png'}}" mode="aspectFill" class="avatar"></image>
+      <text class="avatar-text">{{userInfo.nickName || '微信用户'}}</text>
+    </view>
+    
+    <button class="login-btn" bindtap="quickLogin">微信快捷登录</button>
+    
+    <view class="phone-number-component">
+      <text class="privacy-text">点击「获取手机号」即表示同意《隐私政策》，我们将仅用于账号登录验证</text>
+      <button class="phone-btn" open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber" type="primary">手机号快捷登录</button>
+    </view>
+  </view>
+</view>
