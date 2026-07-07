@@ -47,7 +47,7 @@ const dbConfig = {
 };
 
 if (process.env.DB_SSL === 'true' || process.env.NODE_ENV === 'production') {
-  dbConfig.ssl = { rejectUnauthorized: true };
+  dbConfig.ssl = { rejectUnauthorized: false };
 }
 
 const pool = mysql.createPool(dbConfig);
