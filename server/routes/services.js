@@ -23,7 +23,7 @@ router.get('/:id', async (req, res) => {
   try {
     const db = req.app.locals.db;
     const [services] = await db.execute(
-      'SELECT id, name, price, duration, description FROM services WHERE id = ? AND is_active = 1',
+      'SELECT id, name, price, duration, description, is_active FROM services WHERE id = ?',
       [req.params.id]
     );
     if (services.length === 0) {
@@ -35,7 +35,7 @@ router.get('/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('获取服务详情错误:', error);
-    res.status(500).json({ success: false, message: '服务器错误' });
+    res.status(500).json({ success: false, message: '服务器错误', error: error.message });
   }
 });
 
@@ -65,19 +65,35 @@ router.put('/:id', async (req, res) => {
   try {
     const db = req.app.locals.db;
     const { name, price, duration, description } = req.body;
-    
-    await db.execute(
+
+    if (!name || price === undefined || duration === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: '缺少必填字段: name, price, duration'
+      });
+    }
+
+    const parsedPrice = parseFloat(price);
+    const parsedDuration = parseInt(duration);
+    if (isNaN(parsedPrice) || isNaN(parsedDuration)) {
+      return res.status(400).json({
+        success: false,
+        message: 'price 必须为数字, duration 必须为整数'
+      });
+    }
+
+    await db.query(
       'UPDATE services SET name = ?, price = ?, duration = ?, description = ? WHERE id = ?',
-      [name, price, duration, description, req.params.id]
+      [name, parsedPrice, parsedDuration, description || null, req.params.id]
     );
-    
+
     res.status(200).json({
       success: true,
-      data: { id: req.params.id, name, price, duration, description }
+      data: { id: parseInt(req.params.id), name, price: parsedPrice, duration: parsedDuration, description }
     });
   } catch (error) {
     console.error('更新服务错误:', error);
-    res.status(500).json({ success: false, message: '服务器错误' });
+    res.status(500).json({ success: false, message: '服务器错误', error: error.message });
   }
 });
 
