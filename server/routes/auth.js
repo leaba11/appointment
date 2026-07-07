@@ -121,7 +121,11 @@ router.post('/login', async (req, res) => {
     }
     
     // 生成JWT token（有效期7天）
-    const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error('JWT_SECRET 未配置');
+      return res.status(500).json({ success: false, message: '服务器配置错误' });
+    }
     const token = jwt.sign(
       { userId: user.id },
       jwtSecret,

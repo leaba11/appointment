@@ -1,4 +1,5 @@
 const express = require('express');
+const { adminAuthenticate } = require('../middleware/auth');
 const router = express.Router();
 
 const TABLES = [
@@ -14,7 +15,7 @@ const TABLES = [
   'revenue_records'
 ];
 
-router.post('/', async (req, res) => {
+router.post('/', adminAuthenticate, async (req, res) => {
   const db = req.app.locals.db;
   
   try {

@@ -1,4 +1,5 @@
 const express = require('express');
+const { adminAuthenticate } = require('../middleware/auth');
 const router = express.Router();
 
 // 获取商户信息接口
@@ -36,7 +37,7 @@ router.get('/', async (req, res) => {
 });
 
 // 更新商户信息接口（管理后台使用）
-router.put('/', async (req, res) => {
+router.put('/', adminAuthenticate, async (req, res) => {
   try {
     const db = req.app.locals.db;
     const { name, address, phone, description } = req.body;

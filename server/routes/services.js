@@ -1,4 +1,5 @@
 const express = require('express');
+const { adminAuthenticate } = require('../middleware/auth');
 const router = express.Router();
 
 // 获取服务列表接口
@@ -40,7 +41,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // 创建服务接口（管理后台使用）
-router.post('/', async (req, res) => {
+router.post('/', adminAuthenticate, async (req, res) => {
   try {
     const db = req.app.locals.db;
     const { name, price, duration, description } = req.body;
@@ -61,7 +62,7 @@ router.post('/', async (req, res) => {
 });
 
 // 更新服务接口（管理后台使用）
-router.put('/:id', async (req, res) => {
+router.put('/:id', adminAuthenticate, async (req, res) => {
   try {
     const db = req.app.locals.db;
     const { name, price, duration, description } = req.body;
@@ -98,7 +99,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // 删除服务接口（管理后台使用）
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', adminAuthenticate, async (req, res) => {
   try {
     const db = req.app.locals.db;
     await db.execute(

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate, optionalAuthenticate } = require('../middleware/auth');
+const { authenticate, optionalAuthenticate, adminAuthenticate } = require('../middleware/auth');
 
 // 状态转换函数：英文状态转中文
 function statusToChinese(status) {
@@ -394,7 +394,7 @@ router.get('/list', async (req, res) => {
   }
 });
 
-router.post('/call-next', async (req, res) => {
+router.post('/call-next', adminAuthenticate, async (req, res) => {
   try {
     const db = req.app.locals.db;
     
@@ -463,7 +463,7 @@ router.post('/call-next', async (req, res) => {
   }
 });
 
-router.post('/reset', async (req, res) => {
+router.post('/reset', adminAuthenticate, async (req, res) => {
   try {
     const db = req.app.locals.db;
     
@@ -486,7 +486,7 @@ router.post('/reset', async (req, res) => {
 });
 
 // 更新排队记录状态（刷号或开始处理）
-router.post('/update-status', async (req, res) => {
+router.post('/update-status', adminAuthenticate, async (req, res) => {
   try {
     const db = req.app.locals.db;
     const { recordId, status } = req.body;
@@ -574,7 +574,7 @@ router.post('/update-status', async (req, res) => {
 });
 
 // 完成服务
-router.post('/complete-service', async (req, res) => {
+router.post('/complete-service', adminAuthenticate, async (req, res) => {
   try {
     const db = req.app.locals.db;
     const { recordId } = req.body;

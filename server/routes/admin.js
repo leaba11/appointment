@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { adminAuthenticate } = require('../middleware/auth');
 
 // 密码复杂度验证函数
 function validatePasswordComplexity(password) {
@@ -28,7 +29,7 @@ function validatePasswordComplexity(password) {
 }
 
 // 创建管理员接口（仅超级管理员可用）
-router.post('/create', async (req, res) => {
+router.post('/create', adminAuthenticate, async (req, res) => {
   try {
     const db = req.app.locals.db;
     const { username, password, role = 'admin' } = req.body;
@@ -117,9 +118,14 @@ router.post('/login', async (req, res) => {
     }
     
     // 生成JWT token
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error('JWT_SECRET 未配置');
+      return res.status(500).json({ success: false, message: '服务器配置错误' });
+    }
     const token = jwt.sign(
       { adminId: admin.id, role: admin.role },
-      process.env.JWT_SECRET || 'your-secret-key',
+      jwtSecret,
       { expiresIn: '7d' }
     );
     
@@ -141,10 +147,10 @@ router.post('/login', async (req, res) => {
 });
 
 // 重置管理员密码接口
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password', adminAuthenticate, async (req, res) => {
   try {
     const db = req.app.locals.db;
-    const { username, oldPassword, newPassword } = req.body;
+    const { oldPassword, newPassword } = req.body;
     
     // 验证新密码复杂度
     const passwordValidation = validatePasswordComplexity(newPassword);
@@ -155,14 +161,15 @@ router.post('/reset-password', async (req, res) => {
       });
     }
     
-    // 获取管理员信息
+    // 从token获取管理员信息
+    const adminId = req.admin.id;
     const [admins] = await db.execute(
-      'SELECT * FROM admins WHERE username = ? AND is_active = 1',
-      [username]
+      'SELECT * FROM admins WHERE id = ? AND is_active = 1',
+      [adminId]
     );
     
     if (admins.length === 0) {
-      return res.status(401).json({ success: false, message: '用户名或密码错误' });
+      return res.status(401).json({ success: false, message: '管理员不存在' });
     }
     
     const admin = admins[0];

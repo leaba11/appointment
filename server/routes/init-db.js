@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const { adminAuthenticate } = require('../middleware/auth');
 
 function splitStatements(sql) {
   const statements = [];
@@ -66,7 +67,7 @@ function splitStatements(sql) {
   return statements;
 }
 
-router.get('/', async (req, res) => {
+router.get('/', adminAuthenticate, async (req, res) => {
   const db = req.app.locals.db;
   
   try {

@@ -108,7 +108,11 @@ const authMiddleware = (req, res, next) => {
       return res.status(401).json({ success: false, message: '请先登录' });
     }
     
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      return res.status(500).json({ success: false, message: '服务器配置错误' });
+    }
+    const decoded = jwt.verify(token, jwtSecret);
     // 处理用户和管理员的token
     if (decoded.userId) {
       req.user = {
