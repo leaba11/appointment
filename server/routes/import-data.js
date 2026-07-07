@@ -58,7 +58,24 @@ router.post('/', async (req, res) => {
         for (const row of rows) {
           const columns = Object.keys(row);
           const placeholders = columns.map(() => '?').join(', ');
-          const values = columns.map(col => row[col]);
+          
+          function convertDateTime(colName, val) {
+            if (typeof val !== 'string') return val;
+            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(val)) return val;
+            
+            const d = new Date(val);
+            const pad = n => String(n).padStart(2, '0');
+            const dateStr = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+            const timeStr = `${pad(d.getUTCHours() + 8)}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+            
+            const dateOnlyCols = ['appointment_date', 'date', 'birth_date'];
+            if (dateOnlyCols.includes(colName)) {
+              return dateStr;
+            }
+            return `${dateStr} ${timeStr}`;
+          }
+          
+          const values = columns.map(col => convertDateTime(col, row[col]));
           const sql = `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES (${placeholders})`;
 
           try {
