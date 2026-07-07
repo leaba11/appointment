@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: appointment-server
+    env: node
+    plan: starter
+    buildCommand: cd server && npm install
+    startCommand: cd server && node app.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_HOST
+        fromDatabase:
+          name: wechat_manage_db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: wechat_manage_db
+          property: port
+      - key: DB_USER
+        fromDatabase:
+          name: wechat_manage_db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: wechat_manage_db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: wechat_manage_db
+          property: database
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 10000
+
+databases:
+  - name: wechat_manage_db
+    databaseName: wechat_manage
+    user: root
+    plan: starter

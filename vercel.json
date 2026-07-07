@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server/app.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "server/app.js"
+    },
+    {
+      "src": "/images/(.*)",
+      "dest": "server/app.js"
+    },
+    {
+      "src": "/merchant-admin/(.*)",
+      "dest": "server/app.js"
+    },
+    {
+      "src": "/health",
+      "dest": "server/app.js"
+    },
+    {
+      "src": "/",
+      "dest": "server/app.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

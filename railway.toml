@@ -1,0 +1,11 @@
+[settings]
+project = "wechat-appointment-system"
+environment = "production"
+
+[build]
+builder = "npm"
+buildCommand = "cd server && npm install"
+outputDir = "."
+
+[deploy]
+startCommand = "cd server && node app.js"
