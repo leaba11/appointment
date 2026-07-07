@@ -143,6 +143,7 @@ const adminRoutes = require('./routes/admin');
 const statsRoutes = require('./routes/stats');
 const initDbRoutes = require('./routes/init-db');
 const diagnosticRoutes = require('./routes/diagnostic');
+const importDataRoutes = require('./routes/import-data');
 
 
 app.use('/api/auth', authRoutes);
@@ -155,6 +156,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/init-db', initDbRoutes);
 app.use('/api/diagnostic', diagnosticRoutes);
+app.use('/api/import-data', importDataRoutes);
 
 
 // 静态文件服务
