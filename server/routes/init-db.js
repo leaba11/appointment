@@ -1,0 +1,61 @@
+const express = require('express');
+const router = express.Router();
+const fs = require('fs');
+const path = require('path');
+
+router.get('/', async (req, res) => {
+  const db = req.app.locals.db;
+  
+  try {
+    const schemaPath = path.join(__dirname, '../../database/schema.sql');
+    
+    if (!fs.existsSync(schemaPath)) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'schema.sql 文件不存在' 
+      });
+    }
+
+    const sql = fs.readFileSync(schemaPath, 'utf8');
+    
+    const statements = sql
+      .split(';')
+      .map(s => s.trim())
+      .filter(s => s.length > 0 && !s.startsWith('--'));
+
+    const results = [];
+    for (const statement of statements) {
+      try {
+        await db.query(statement);
+        results.push({ success: true, preview: statement.substring(0, 50) + '...' });
+      } catch (err) {
+        if (err.code === 'ER_TABLE_EXISTS_ERROR' || err.errno === 1050) {
+          results.push({ success: true, skipped: '表已存在', preview: statement.substring(0, 50) + '...' });
+        } else {
+          results.push({ success: false, error: err.message, preview: statement.substring(0, 50) + '...' });
+        }
+      }
+    }
+
+    const [tables] = await db.execute('SHOW TABLES;');
+    const tableNames = tables.map(t => Object.values(t)[0]);
+
+    res.json({
+      success: true,
+      message: '数据库初始化完成',
+      executedStatements: results.length,
+      tables: tableNames,
+      details: results
+    });
+
+  } catch (err) {
+    console.error('数据库初始化失败:', err);
+    res.status(500).json({
+      success: false,
+      message: '数据库初始化失败',
+      error: err.message
+    });
+  }
+});
+
+module.exports = router;
