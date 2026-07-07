@@ -4,18 +4,37 @@ const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
 const path = require('path');
 
-// 加载环境变量
 dotenv.config();
 
-// 初始化Express应用
+if (!process.env.JWT_SECRET) {
+  console.error('错误: JWT_SECRET 环境变量未设置');
+  process.exit(1);
+}
+
 const app = express();
 
-// 中间件配置
-app.use(cors());
-app.use(express.json());
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.CORS_ORIGIN || '*' 
+    : '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10mb' }));
+
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    next();
+  });
+}
 
 // 数据库连接池配置
-const pool = mysql.createPool({
+const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 3306,
   user: process.env.DB_USER || 'root',
@@ -24,8 +43,14 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  dateStrings: true // 关键选项：让日期以字符串形式返回，避免时区转换问题
-});
+  dateStrings: true
+};
+
+if (process.env.DB_SSL === 'true' || process.env.NODE_ENV === 'production') {
+  dbConfig.ssl = { rejectUnauthorized: true };
+}
+
+const pool = mysql.createPool(dbConfig);
 
 // 测试数据库连接并初始化表格
 pool.getConnection()
@@ -147,20 +172,25 @@ app.get('/health', (req, res) => {
   res.status(200).json({ success: true, message: '服务器运行正常' });
 });
 
-// 启动服务器
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`服务器运行在 http://localhost:${PORT}`);
-  // 获取IPv4地址
-  const interfaces = require('os').networkInterfaces();
-  let ipv4Address = '192.168.x.x';
-  for (const key in interfaces) {
-    for (const iface of interfaces[key]) {
-      if (iface.family === 'IPv4' && !iface.internal) {
-        ipv4Address = iface.address;
-        break;
+
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`服务器运行在 http://localhost:${PORT}`);
+    if (process.env.NODE_ENV !== 'production') {
+      const interfaces = require('os').networkInterfaces();
+      let ipv4Address = '192.168.x.x';
+      for (const key in interfaces) {
+        for (const iface of interfaces[key]) {
+          if (iface.family === 'IPv4' && !iface.internal) {
+            ipv4Address = iface.address;
+            break;
+          }
+        }
       }
+      console.log(`局域网访问地址: http://${ipv4Address}:${PORT}`);
     }
-  }
-  console.log(`局域网访问地址: http://${ipv4Address}:${PORT}`);
-});
+  });
+}
+
+module.exports = app;
