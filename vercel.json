@@ -4,19 +4,19 @@
     {
       "src": "server/app.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "merchant-admin/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "merchant-appointment-system/images/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "server/app.js"
-    },
-    {
-      "src": "/images/(.*)",
-      "dest": "server/app.js"
-    },
-    {
-      "src": "/merchant-admin/(.*)",
       "dest": "server/app.js"
     },
     {
@@ -26,6 +26,19 @@
     {
       "src": "/",
       "dest": "server/app.js"
+    },
+    {
+      "src": "/merchant-admin",
+      "status": 308,
+      "headers": { "Location": "/merchant-admin/index.html" }
+    },
+    {
+      "src": "/merchant-admin/(.*)",
+      "dest": "/merchant-admin/$1"
+    },
+    {
+      "src": "/images/(.*)",
+      "dest": "/merchant-appointment-system/images/$1"
     }
   ],
   "env": {
